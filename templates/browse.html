@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_card.html" import item_card with context %}
+{% block title %}逛信息墙 · 校园闲置信息墙{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">逛信息墙</h1>
+    <p class="muted">共 {{ total }} 条有效信息{% if q %}，关键词「{{ q }}」{% endif %}</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('publish') }}">＋ 贴一条信息</a>
+</div>
+
+<form class="filter-bar" method="get" action="{{ url_for('browse') }}">
+  <div class="filter-search">
+    <span class="search-icon">🔍</span>
+    <input class="input" type="text" name="q" value="{{ q }}" placeholder="搜索教材、数码、家具……">
+  </div>
+  <select class="select" name="cat">
+    <option value="">全部分类</option>
+    {% for c in CATEGORIES %}
+      <option value="{{ c['key'] }}" {% if cat == c['key'] %}selected{% endif %}>{{ c['icon'] }} {{ c['name'] }}</option>
+    {% endfor %}
+  </select>
+  <select class="select" name="cond">
+    <option value="">全部成色</option>
+    {% for c in CONDITIONS %}
+      <option value="{{ c }}" {% if cond == c %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+  <div class="price-range">
+    <input class="input" type="number" name="min" value="{{ min_p }}" placeholder="最低价" min="0">
+    <span>—</span>
+    <input class="input" type="number" name="max" value="{{ max_p }}" placeholder="最高价" min="0">
+  </div>
+  <select class="select" name="sort">
+    <option value="new" {% if sort == 'new' %}selected{% endif %}>最新发布</option>
+    <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+    <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+    <option value="hot" {% if sort == 'hot' %}selected{% endif %}>人气最高</option>
+  </select>
+  <button class="btn btn-primary" type="submit">筛选</button>
+  {% if q or cat or cond or min_p or max_p or sort != 'new' %}
+    <a class="btn btn-text" href="{{ url_for('browse') }}">重置</a>
+  {% endif %}
+</form>
+
+<div class="cat-strip compact">
+  <a class="cat-pill {% if not cat %}on{% endif %}" href="{{ url_for('browse', q=q, cond=cond, sort=sort) }}">全部</a>
+  {% for c in CATEGORIES %}
+    <a class="cat-pill {% if cat == c['key'] %}on{% endif %}"
+       href="{{ url_for('browse', cat=c['key'], q=q, cond=cond, sort=sort) }}">
+      <span>{{ c['icon'] }}</span>{{ c['name'] }}
+      {% if cat_counts.get(c['key']) %}<i class="pill-count">{{ cat_counts[c['key']] }}</i>{% endif %}
+    </a>
+  {% endfor %}
+</div>
+
+{% if items %}
+  <div class="grid">
+    {% for item in items %}{{ item_card(item) }}{% endfor %}
+  </div>
+
+  {% if pages > 1 %}
+    <nav class="pager">
+      {% if page > 1 %}
+        <a class="page-btn" href="{{ url_for('browse', q=q, cat=cat, cond=cond, sort=sort, min=min_p, max=max_p, page=page-1) }}">← 上一页</a>
+      {% endif %}
+      {% for p in range(1, pages + 1) %}
+        {% if p == page %}
+          <span class="page-btn on">{{ p }}</span>
+        {% else %}
+          <a class="page-btn" href="{{ url_for('browse', q=q, cat=cat, cond=cond, sort=sort, min=min_p, max=max_p, page=p) }}">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page < pages %}
+        <a class="page-btn" href="{{ url_for('browse', q=q, cat=cat, cond=cond, sort=sort, min=min_p, max=max_p, page=page+1) }}">下一页 →</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="empty">
+    <div class="empty-icon">🫧</div>
+    <h3>没有找到符合条件的信息</h3>
+    <p class="muted">换个关键词或放宽价格区间试试。</p>
+    <a class="btn btn-ghost" href="{{ url_for('browse') }}">查看全部信息</a>
+  </div>
+{% endif %}
+{% endblock %}

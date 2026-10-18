@@ -1,0 +1,38 @@
+{% macro item_card(item) %}
+<a class="card" href="{{ url_for('item_detail', item_id=item['id']) }}">
+  <div class="card-media">
+    {% if item['image'] %}
+      <img src="{{ item['image'] if item['image'].startswith('http') else url_for('static', filename=item['image']) }}"
+           alt="{{ item['title'] }}" loading="lazy">
+    {% else %}
+      <div class="ph ph-{{ item['id'] % 6 }}"><span>{{ CAT_MAP[item['category']]['icon'] }}</span></div>
+    {% endif %}
+    <span class="cat-chip">{{ CAT_MAP[item['category']]['name'] }}</span>
+    {% if item['status'] != 'open' %}
+      <span class="badge badge-{{ item['status'] }}">{{ STATUS_TEXT[item['status']] }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">{{ item['title'] }}</h3>
+    <div class="price-row">
+      {% if item['price'] is not none %}
+        <span class="price"><i>¥</i>{{ item['price'] | money }}</span>
+        <span class="price-note">可商量</span>
+      {% else %}
+        <span class="price price-nego">面议</span>
+      {% endif %}
+      {% if item['original_price'] %}
+        <span class="origin">原价 ¥{{ item['original_price'] | money }}</span>
+      {% endif %}
+    </div>
+    <div class="card-meta">
+      <span class="tag-soft">{{ item['condition'] }}</span>
+      <span class="muted">{{ item['location'] or '校内自提' }}</span>
+    </div>
+    <div class="card-foot">
+      <span class="seller-dot">{{ item['seller_name'] }} · {{ item['seller_grade'] }}</span>
+      <span class="muted">{{ item['created_at'] | timeago }}</span>
+    </div>
+  </div>
+</a>
+{% endmacro %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}登录 · 校园闲置信息墙{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-side">
+    <span class="eyebrow">🎓 毕业季闲置信息墙</span>
+    <h1>回到信息墙，<br>看看有没有人在等你。</h1>
+    <p class="muted">
+      登录后可以浏览墙上全部闲置信息、贴自己的闲置、向发布者发起联系。
+      对方同意后你们就能在站内沟通，联系方式想交换就交换，不想也能全程在站内聊完。
+    </p>
+    <div class="auth-points">
+      <span>✅ 全部信息可见</span>
+      <span>✅ 任何人都能发布 / 联系</span>
+      <span>✅ 联系方式自愿交换</span>
+    </div>
+  </div>
+
+  <div class="auth-card">
+    <h2>登录账号</h2>
+    <p class="muted small">还没有账号？<a class="text-link" href="{{ url_for('register') }}">立即注册</a></p>
+
+    <form method="post" action="{{ url_for('login', next=nxt) }}" class="form">
+      <input type="hidden" name="next" value="{{ nxt }}">
+      <div class="field">
+        <label for="username">账号</label>
+        <input class="input" id="username" name="username" value="{{ username }}" required
+               placeholder="请输入账号" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">密码</label>
+        <input class="input" id="password" name="password" type="password" required
+               placeholder="请输入密码" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">登录</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

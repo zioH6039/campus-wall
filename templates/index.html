@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% from "_card.html" import item_card with context %}
+{% block title %}校园闲置信息墙 · 毕业季{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-blob hero-blob-a"></div>
+  <div class="hero-blob hero-blob-b"></div>
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">🎓 毕业季 · 一面只负责牵线的信息墙</span>
+      <h1>谁都可以贴，<br>谁都可以来联系。</h1>
+      <p class="hero-sub">
+        这里不是商店，只是一面墙。把带不走的闲置写成信息贴上来，或者看看别人贴了什么。
+        你向发布者发起联系、对方同意后，就可以在站内直接聊；
+        联系方式想给就给，不想给也能全程在站内聊完。价格、时间、地点，都由你们自己定。
+      </p>
+      <div class="hero-actions">
+        {% if current_user %}
+          <a class="btn btn-primary" href="{{ url_for('browse') }}">去看看墙上有什么</a>
+          <a class="btn btn-ghost" href="{{ url_for('publish') }}">贴一条闲置信息</a>
+        {% else %}
+          <a class="btn btn-primary" href="{{ url_for('register') }}">注册后开始联系</a>
+          <a class="btn btn-ghost" href="{{ url_for('browse') }}">先看看有什么</a>
+        {% endif %}
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><b>{{ open_total }}</b><span>条有效信息</span></div>
+        <div class="stat"><b>{{ closed_total }}</b><span>条已出手</span></div>
+        <div class="stat"><b>{{ user_total }}</b><span>位注册同学</span></div>
+      </div>
+    </div>
+
+    <aside class="rule-card">
+      <div class="rule-head">
+        <span class="rule-badge">使用规则</span>
+        <h4>这面墙怎么用？</h4>
+      </div>
+      <ul class="rule-list">
+        <li>
+          <span class="rule-icon icon-sell">📤</span>
+          <div><strong>任何人都可以发布</strong><small>不限年级，把闲置信息贴上来就行</small></div>
+        </li>
+        <li>
+          <span class="rule-icon icon-buy">💬</span>
+          <div><strong>任何人都可以联系</strong><small>对方同意后，双方开始站内沟通</small></div>
+        </li>
+        <li>
+          <span class="rule-icon icon-guest">🔐</span>
+          <div><strong>联系方式自愿给</strong><small>同意后各自决定是否发送，也可以只站内聊</small></div>
+        </li>
+      </ul>
+      {% if not current_user %}
+        <a class="rule-cta" href="{{ url_for('login') }}">登录后查看全部信息 →</a>
+      {% else %}
+        <div class="rule-cta rule-cta-static">
+          {{ current_user['nickname'] }}，随时可以发布信息或联系别人
+        </div>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+
+<section class="steps">
+  <div class="step">
+    <span class="step-no">01</span>
+    <div><b>在墙上找到它</b><small>按分类、关键词、价格区间筛选</small></div>
+  </div>
+  <div class="step">
+    <span class="step-no">02</span>
+    <div><b>发起联系</b><small>对方同意后，双方开始站内聊天</small></div>
+  </div>
+  <div class="step">
+    <span class="step-no">03</span>
+    <div><b>联系方式自愿交换</b><small>想给就给，也可以全程只站内聊</small></div>
+  </div>
+  <div class="step">
+    <span class="step-no">04</span>
+    <div><b>自己约时间地点</b><small>校园里当面交接，先验货再付款</small></div>
+  </div>
+</section>
+
+<div class="notice-bar steps-note">
+  <span>⚠️</span>
+  <p>平台只负责牵线，<b>不参与交易、不收款、不担保</b>。请在校内当面交接，先验货再付款。</p>
+</div>
+
+<section class="cat-strip">
+  <a class="cat-pill on" href="{{ url_for('browse') }}">全部</a>
+  {% for c in CATEGORIES %}
+    <a class="cat-pill" href="{{ url_for('browse', cat=c['key']) }}">
+      <span>{{ c['icon'] }}</span>{{ c['name'] }}
+    </a>
+  {% endfor %}
+</section>
+
+<div class="section-head">
+  <div>
+    <h2>墙上最新</h2>
+    <p class="muted">刚贴上去的闲置信息，感兴趣就点进去联系对方</p>
+  </div>
+  <a class="link-more" href="{{ url_for('browse') }}">查看全部 →</a>
+</div>
+
+{% if items %}
+  <div class="grid">
+    {% for item in items %}{{ item_card(item) }}{% endfor %}
+  </div>
+{% else %}
+  <div class="empty">
+    <div class="empty-icon">📦</div>
+    <h3>墙上还没有信息</h3>
+    <p class="muted">来贴第一条吧，让需要它的人找到你。</p>
+  </div>
+{% endif %}
+
+{% if guest %}
+  <section class="lock-panel">
+    <div class="lock-inner">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-copy">
+        <h3>墙上还有 {{ hidden_total }} 条信息等你查看</h3>
+        <p class="muted">
+          游客可以浏览首页推荐的部分信息。登录后可以查看全部 {{ open_total }} 条信息，
+          向发布者发起联系，也可以自己贴闲置信息。
+        </p>
+      </div>
+      <div class="lock-actions">
+        <a class="btn btn-primary" href="{{ url_for('login') }}">登录</a>
+        <a class="btn btn-ghost" href="{{ url_for('register') }}">注册</a>
+      </div>
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

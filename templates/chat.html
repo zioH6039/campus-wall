@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}和 {{ other['nickname'] }} 的沟通 · 校园闲置信息墙{% endblock %}
+
+{% block content %}
+<nav class="crumbs">
+  <a href="{{ url_for('index') }}">首页</a><span>/</span>
+  <a href="{{ url_for('my', tab='inbox' if is_seller else 'inquiries') }}">我的</a><span>/</span>
+  <em>关于「{{ item['title'] }}」的沟通</em>
+</nav>
+
+{% if inquiry['status'] == 'pending' %}
+  {% if is_seller %}
+    <div class="chat-banner banner-pending">
+      <span>📮</span>
+      <div><b>{{ other['nickname'] }} 想联系你</b><small>同意后你们就能在站内聊天，联系方式也可以到时候再决定给不给。</small></div>
+    </div>
+  {% else %}
+    <div class="chat-banner banner-pending">
+      <span>⏳</span>
+      <div><b>联系申请已发送，等待对方同意</b><small>对方同意后会在这里开启对话，可以先把时间地点想好。</small></div>
+    </div>
+  {% endif %}
+{% elif inquiry['status'] == 'agreed' %}
+  <div class="chat-banner banner-agreed">
+    <span>📍</span>
+    <div><b>已约好</b><small>按你们商量的时间地点当面交接，记得先验货再付款。</small></div>
+  </div>
+{% elif inquiry['status'] == 'declined' %}
+  <div class="chat-banner banner-closed">
+    <span>🙏</span>
+    <div><b>对方婉拒了这次联系</b><small>可能是已经出手了，也可以看看墙上的其他信息。</small></div>
+  </div>
+{% elif inquiry['status'] == 'closed' %}
+  <div class="chat-banner banner-closed">
+    <span>✔️</span>
+    <div><b>这次联系已结束</b><small>如果还需要沟通，可以重新开启。</small></div>
+  </div>
+{% endif %}
+
+<div class="chat-grid">
+  <section class="chat-panel">
+    <header class="chat-head">
+      <div class="avatar">{{ other['nickname'][0] }}</div>
+      <div class="chat-who">
+        <strong>{{ other['nickname'] }}
+          <span class="tag-soft">{{ other['grade'] }}{{ ' · 发布者' if is_buyer else ' · 联系者' }}</span>
+        </strong>
+        <small class="muted">
+          {% if other['campus'] %}{{ other['campus'] }} · {% endif %}
+          <span class="status status-{{ inquiry['status'] }}">{{ INQUIRY_TEXT[inquiry['status']] }}</span>
+        </small>
+      </div>
+      <div class="chat-head-actions">
+        {% if inquiry['status'] == 'pending' and is_seller %}
+          <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='accept') }}">
+            <button class="btn btn-primary btn-sm" type="submit">同意联系</button>
+          </form>
+          <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='decline') }}">
+            <button class="btn btn-ghost btn-sm" type="submit">婉拒</button>
+          </form>
+        {% elif inquiry['status'] == 'chatting' %}
+          <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='agree') }}">
+            <button class="btn btn-primary btn-sm" type="submit">已约好</button>
+          </form>
+          <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='close') }}">
+            <button class="btn btn-ghost btn-sm" type="submit">结束联系</button>
+          </form>
+        {% elif inquiry['status'] == 'agreed' %}
+          <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='close') }}">
+            <button class="btn btn-ghost btn-sm" type="submit">结束联系</button>
+          </form>
+        {% elif inquiry['status'] in ('closed', 'declined') %}
+          <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='reopen') }}">
+            <button class="btn btn-ghost btn-sm" type="submit">重新开启</button>
+          </form>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="chat-body" id="bottom">
+      {% for m in messages %}
+        <div class="msg {{ 'msg-mine' if m['uid'] == current_user['id'] else 'msg-other' }}">
+          {% if m['uid'] != current_user['id'] %}
+            <span class="avatar sm">{{ m['nickname'][0] }}</span>
+          {% endif %}
+          <div class="bubble-wrap">
+            <div class="bubble">{{ m['content'] }}</div>
+            <small class="msg-time">{{ m['created_at'] | timeago }}</small>
+          </div>
+        </div>
+      {% endfor %}
+
+      {% if inquiry['status'] == 'pending' %}
+        <div class="chat-tip">
+          {{ '你同意后就可以开始聊天了' if is_seller else '等待对方同意，之后就能自由聊天' }}
+        </div>
+      {% elif inquiry['status'] == 'declined' %}
+        <div class="chat-tip">这次联系已结束，对方没有同意</div>
+      {% endif %}
+    </div>
+
+    {% if inquiry['status'] in ('chatting', 'agreed') %}
+      <form class="chat-composer" method="post" action="{{ url_for('chat_send', inquiry_id=inquiry['id']) }}">
+        <textarea class="textarea" name="content" rows="2" required maxlength="1000"
+                  placeholder="聊聊物品情况，约个时间地点…&#10;例如：明天下午 4 点在西区 3 号楼楼下可以吗？"></textarea>
+        <button class="btn btn-primary" type="submit">发送</button>
+      </form>
+    {% elif inquiry['status'] == 'pending' %}
+      <div class="chat-closed">
+        {{ '对方同意后即可开始聊天' if is_seller else '等待对方同意后才能发送消息' }}
+      </div>
+    {% else %}
+      <div class="chat-closed">这条联系已关闭，无法继续发送消息</div>
+    {% endif %}
+  </section>
+
+  <aside class="chat-side">
+    <a class="mini-item" href="{{ url_for('item_detail', item_id=item['item_id']) }}">
+      <div class="mini-thumb">
+        {% if item['image'] %}
+          <img src="{{ item['image'] if item['image'].startswith('http') else url_for('static', filename=item['image']) }}" alt="">
+        {% else %}
+          <div class="ph ph-{{ item['item_id'] % 6 }}"><span>{{ CAT_MAP[item['category']]['icon'] }}</span></div>
+        {% endif %}
+      </div>
+      <div class="mini-main">
+        <b>{{ item['title'] }}</b>
+        <small class="muted">{{ item['condition'] }} · {{ CAT_MAP[item['category']]['name'] }}</small>
+        {% if item['price'] is not none %}
+          <span class="price"><i>¥</i>{{ item['price'] | money }}</span>
+        {% else %}
+          <span class="price price-nego">面议</span>
+        {% endif %}
+      </div>
+    </a>
+
+    <div class="panel side-panel">
+      <h3 class="panel-title">联系方式（自愿交换）</h3>
+      <div class="contact-line">
+        <span>我的</span>
+        <b>{{ me['contact'] or '未填写' }}</b>
+      </div>
+      <form class="contact-edit" method="post" action="{{ url_for('update_contact') }}">
+        <input class="input" name="contact" value="{{ me['contact'] or '' }}" maxlength="40"
+               placeholder="微信 / QQ / 手机号">
+        <input type="hidden" name="back" value="{{ url_for('chat', inquiry_id=inquiry['id']) }}">
+        <button class="btn btn-ghost btn-sm" type="submit">保存</button>
+      </form>
+      <div class="contact-line other">
+        <span>对方</span>
+        {% if other_contact_ok and other['contact'] %}
+          <b class="ok">{{ other['contact'] }}</b>
+        {% elif other_contact_ok %}
+          <b class="muted">对方愿意交换，但没有填写</b>
+        {% else %}
+          <b class="muted">对方还没有发送</b>
+        {% endif %}
+      </div>
+
+      {% if inquiry['status'] in ('chatting', 'agreed') %}
+        <form method="post" action="{{ url_for('inquiry_action', inquiry_id=inquiry['id'], action='share-contact') }}">
+          <button class="btn {{ 'btn-ghost' if my_contact_ok else 'btn-primary' }} btn-block btn-sm contact-share"
+                  {% if not me['contact'] %}disabled{% endif %} type="submit">
+            {{ '已发送 · 点此撤回' if my_contact_ok else '把我的联系方式发给 TA' }}
+          </button>
+        </form>
+        {% if not me['contact'] %}
+          <p class="muted small center">先在上方填写联系方式，才能发送给对方</p>
+        {% else %}
+          <p class="muted small center">不发送也可以，全程站内聊完再约见面</p>
+        {% endif %}
+      {% else %}
+        <p class="muted small center">对方同意联系后，才可以选择是否发送联系方式</p>
+      {% endif %}
+    </div>
+
+    <div class="panel side-panel">
+      <h3 class="panel-title">当面交接建议</h3>
+      <ul class="tips">
+        <li>约在宿舍楼下、食堂门口等熟悉的校内地点</li>
+        <li>贵重物品当面验货，确认无误再付款</li>
+        <li>最好白天见面，可以带一位同学同行</li>
+        <li>聊好后点「已约好」，方便双方记住约定</li>
+      </ul>
+    </div>
+
+    {% if is_seller and other_inquiries %}
+    <div class="panel side-panel">
+      <h3 class="panel-title">还有 {{ other_inquiries | length }} 位同学联系过</h3>
+      <div class="mini-list">
+        {% for q in other_inquiries %}
+          <a class="mini-row" href="{{ url_for('chat', inquiry_id=q['id']) }}">
+            <span class="avatar sm">{{ q['nickname'][0] }}</span>
+            <span class="mini-row-main">{{ q['nickname'] }}</span>
+            <span class="status status-{{ q['status'] }}">{{ INQUIRY_TEXT[q['status']] }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="notice-bar side">
+      <span>⚠️</span>
+      <p>平台只负责牵线，<b>不参与交易、不收款</b>，请当面确认后再付款。</p>
+    </div>
+  </aside>
+</div>
+{% endblock %}

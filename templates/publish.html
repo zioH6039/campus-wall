@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}贴一条闲置信息 · 校园闲置信息墙{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">贴一条闲置信息</h1>
+    <p class="muted">{{ current_user['nickname'] }} · {{ current_user['grade'] }} · 把闲置写在墙上，等需要它的同学来联系你</p>
+  </div>
+  <a class="btn btn-ghost" href="{{ url_for('my', tab='posts') }}">我贴的信息 →</a>
+</div>
+
+<form class="publish-grid" method="post" enctype="multipart/form-data">
+  <div class="panel">
+    <h3 class="panel-title">基本信息</h3>
+
+    <div class="field">
+      <label for="title">物品名称 <span class="req">*</span></label>
+      <input class="input" id="title" name="title" required maxlength="40"
+             value="{{ form.get('title', '') }}" placeholder="如：高等数学 同济第七版 上下册">
+      <span class="hint">写清楚物品名称 + 规格，更容易被搜到</span>
+    </div>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="category">分类 <span class="req">*</span></label>
+        <select class="select" id="category" name="category" required>
+          <option value="">请选择</option>
+          {% for c in CATEGORIES %}
+            <option value="{{ c['key'] }}" {% if form.get('category') == c['key'] %}selected{% endif %}>
+              {{ c['icon'] }} {{ c['name'] }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="condition">成色 <span class="req">*</span></label>
+        <select class="select" id="condition" name="condition" required>
+          <option value="">请选择</option>
+          {% for c in CONDITIONS %}
+            <option value="{{ c }}" {% if form.get('condition') == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="price">心理价位（元）</label>
+        <input class="input" id="price" name="price" type="number" min="0.01" step="0.01"
+               value="{{ form.get('price', '') }}" placeholder="留空表示面议">
+        <span class="hint">只是给同学一个参考，具体价格你们自己聊</span>
+      </div>
+      <div class="field">
+        <label for="original_price">原价（元）</label>
+        <input class="input" id="original_price" name="original_price" type="number" min="0" step="0.01"
+               value="{{ form.get('original_price', '') }}" placeholder="选填，方便同学判断">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="location">大概位置</label>
+      <input class="input" id="location" name="location" maxlength="30"
+             value="{{ form.get('location', current_user['campus'] or '') }}"
+             placeholder="如：西区 3 号楼 / 图书馆附近">
+      <span class="hint">写宿舍区就行，具体时间地点不用公开，等同学联系上再约</span>
+    </div>
+
+    <div class="field">
+      <label for="description">详细说明 <span class="req">*</span></label>
+      <textarea class="textarea" id="description" name="description" rows="5" required
+                placeholder="使用时长、有没有磕碰、配件是否齐全、能接受什么时间交接……写详细一点更容易被联系">{{ form.get('description', '') }}</textarea>
+      <span class="hint">至少 5 个字</span>
+    </div>
+  </div>
+
+  <div class="publish-side">
+    <div class="panel">
+      <h3 class="panel-title">物品照片</h3>
+      <label class="upload-box" for="image">
+        <img id="preview" alt="预览" hidden>
+        <div id="uploadPlaceholder" class="upload-placeholder">
+          <span class="upload-icon">📷</span>
+          <b>点击上传图片</b>
+          <small>支持 jpg / png / webp，8MB 以内</small>
+        </div>
+        <input class="hidden-file" id="image" name="image" type="file" accept="image/*">
+      </label>
+      <div class="divider"><span>或</span></div>
+      <div class="field">
+        <label for="image_url">图片链接</label>
+        <input class="input" id="image_url" name="image_url" value="{{ form.get('image_url', '') }}"
+               placeholder="https://...">
+      </div>
+    </div>
+
+    <div class="panel tips-panel">
+      <h3 class="panel-title">贴上墙之前</h3>
+      <ul class="tips">
+        <li>真实照片 + 清楚描述成色，更容易被联系</li>
+        <li>心里价位可以留空写「面议」，让感兴趣的同学来问</li>
+        <li>不要在描述里留身份证、学号等敏感信息</li>
+        <li>平台只负责展示和牵线，交接时请当面验货</li>
+      </ul>
+      <button class="btn btn-primary btn-block" type="submit">贴上信息墙</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2612b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="闲置信息墙">
+  <title>{% block title %}校园闲置信息墙{% endblock %}</title>
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/wall.css') }}">
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="{{ url_for('index') }}">
+        <span class="brand-mark">闲</span>
+        <span class="brand-text">校园闲置信息墙<small>只牵线 · 不交易</small></span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">首页</a>
+        <a href="{{ url_for('browse') }}" class="{% if request.endpoint == 'browse' %}active{% endif %}">逛信息墙</a>
+        {% if current_user %}
+          <a href="{{ url_for('publish') }}" class="{% if request.endpoint == 'publish' %}active{% endif %}">发布信息</a>
+          <a href="{{ url_for('my') }}" class="{% if request.endpoint in ['my', 'chat'] %}active{% endif %}">
+            我的
+            {% if waiting_requests %}<span class="dot-badge">{{ waiting_requests }}</span>{% endif %}
+          </a>
+        {% endif %}
+      </nav>
+
+      <div class="nav-right">
+        {% if current_user %}
+          <a class="user-chip" href="{{ url_for('my') }}">
+            <span class="avatar">{{ current_user['nickname'][0] }}</span>
+            <span class="user-meta">
+              {{ current_user['nickname'] }}
+              <small>{{ current_user['grade'] }}</small>
+            </span>
+          </a>
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">退出</a>
+        {% else %}
+          <a class="btn btn-ghost btn-sm" href="{{ url_for('login') }}">登录</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('register') }}">注册</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container flash-wrap">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">
+            <span class="flash-dot"></span><span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>校园闲置信息墙</strong>
+        <p class="muted">只负责让两个人联系上，不参与交易、不收款、不担保。</p>
+        <p class="muted">请在校园内当面交接，先验货再付款，注意个人财物安全。</p>
+      </div>
+      <div class="footer-rules">
+        <span>未登录仅可浏览部分信息</span>
+        <span>任何人都可以发布 / 联系</span>
+        <span>对方同意后开始沟通</span>
+        <span>联系方式自愿交换</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

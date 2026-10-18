@@ -1,0 +1,20 @@
+{
+  "name": "校园闲置信息墙",
+  "short_name": "闲置墙",
+  "description": "毕业季校园闲置信息墙：任何人可发布闲置信息，任何人可联系发布者，平台只牵线不交易。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f6f2",
+  "theme_color": "#f2612b",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

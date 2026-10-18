@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% from "_card.html" import item_card with context %}
+{% block title %}我的 · 校园闲置信息墙{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">我的信息墙</h1>
+    <p class="muted">{{ current_user['nickname'] }} · {{ current_user['grade'] }}
+      {% if current_user['campus'] %} · {{ current_user['campus'] }}{% endif %}
+      · 你可以随时发布信息，也可以联系任何人
+    </p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('publish') }}">＋ 贴一条信息</a>
+</div>
+
+<div class="summary-row">
+  <div class="summary-card"><span>我贴的</span><b>{{ summary['posts'] }}</b></div>
+  <div class="summary-card"><span>信息有效</span><b>{{ summary['open'] }}</b></div>
+  <div class="summary-card"><span>已出</span><b>{{ summary['closed'] }}</b></div>
+  <div class="summary-card {% if summary['waiting'] %}accent{% endif %}"><span>待处理联系</span><b>{{ summary['waiting'] }}</b></div>
+</div>
+
+<div class="tabs">
+  <a class="tab {% if tab == 'posts' %}on{% endif %}" href="{{ url_for('my', tab='posts') }}">我的信息</a>
+  <a class="tab {% if tab == 'inbox' %}on{% endif %}" href="{{ url_for('my', tab='inbox') }}">
+    收到的联系{% if summary['waiting'] %}<i class="dot-badge">{{ summary['waiting'] }}</i>{% endif %}
+  </a>
+  <a class="tab {% if tab == 'inquiries' %}on{% endif %}" href="{{ url_for('my', tab='inquiries') }}">我联系过的</a>
+  <a class="tab {% if tab == 'favs' %}on{% endif %}" href="{{ url_for('my', tab='favs') }}">我的收藏</a>
+</div>
+
+{% if tab == 'posts' %}
+  {% if posts %}
+    <div class="rows">
+      {% for p in posts %}
+        <div class="row-card">
+          <a class="thumb" href="{{ url_for('item_detail', item_id=p['id']) }}">
+            {% if p['image'] %}
+              <img src="{{ p['image'] if p['image'].startswith('http') else url_for('static', filename=p['image']) }}" alt="">
+            {% else %}
+              <div class="ph ph-{{ p['id'] % 6 }}"><span>{{ CAT_MAP[p['category']]['icon'] }}</span></div>
+            {% endif %}
+          </a>
+          <div class="row-main">
+            <a class="row-title" href="{{ url_for('item_detail', item_id=p['id']) }}">{{ p['title'] }}</a>
+            <div class="row-meta">
+              {% if p['price'] is not none %}
+                <span class="price"><i>¥</i>{{ p['price'] | money }}</span>
+              {% else %}
+                <span class="price price-nego">面议</span>
+              {% endif %}
+              <span class="status status-{{ p['status'] }}">{{ STATUS_TEXT[p['status']] }}</span>
+              <span class="muted">{{ p['views'] }} 浏览 · {{ p['created_at'] | timeago }}</span>
+              {% if p['pending_count'] %}
+                <span class="status status-pending">{{ p['pending_count'] }} 条待处理</span>
+              {% elif p['chatting_count'] %}
+                <span class="status status-chatting">{{ p['chatting_count'] }} 人在沟通</span>
+              {% elif p['inquiry_count'] %}
+                <span class="muted">{{ p['inquiry_count'] }} 次联系</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="row-actions">
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('item_detail', item_id=p['id']) }}">查看</a>
+            {% if p['status'] == 'open' %}
+              <form method="post" action="{{ url_for('change_item_status', item_id=p['id']) }}">
+                <input type="hidden" name="action" value="off">
+                <button class="btn btn-ghost btn-sm" type="submit">下架</button>
+              </form>
+              <form method="post" action="{{ url_for('change_item_status', item_id=p['id']) }}">
+                <input type="hidden" name="action" value="closed">
+                <button class="btn btn-ghost btn-sm" type="submit">已出</button>
+              </form>
+            {% else %}
+              <form method="post" action="{{ url_for('change_item_status', item_id=p['id']) }}">
+                <input type="hidden" name="action" value="on">
+                <button class="btn btn-ghost btn-sm" type="submit">重新上墙</button>
+              </form>
+              <form method="post" action="{{ url_for('change_item_status', item_id=p['id']) }}"
+                    onsubmit="return confirm('确定删除这条信息吗？相关沟通记录也会一起删除，不可恢复。');">
+                <input type="hidden" name="action" value="delete">
+                <button class="btn btn-danger btn-sm" type="submit">删除</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">📤</div>
+      <h3>你还没有贴过信息</h3>
+      <p class="muted">把用不上的东西写在墙上，等需要的人来联系你。</p>
+      <a class="btn btn-primary" href="{{ url_for('publish') }}">贴第一条闲置信息</a>
+    </div>
+  {% endif %}
+
+{% elif tab == 'inbox' %}
+  {% if inbox %}
+    <div class="rows">
+      {% for q in inbox %}
+        <div class="row-card">
+          <a class="thumb" href="{{ url_for('item_detail', item_id=q['item_id']) }}">
+            {% if q['image'] %}
+              <img src="{{ q['image'] if q['image'].startswith('http') else url_for('static', filename=q['image']) }}" alt="">
+            {% else %}
+              <div class="ph ph-{{ q['item_id'] % 6 }}"><span>📦</span></div>
+            {% endif %}
+          </a>
+          <div class="row-main">
+            <a class="row-title" href="{{ url_for('chat', inquiry_id=q['id']) }}">{{ q['title'] }}</a>
+            <div class="row-meta">
+              <span class="status status-{{ q['status'] }}">{{ INQUIRY_TEXT[q['status']] }}</span>
+              <span class="muted">{{ q['buyer_name'] }}（{{ q['buyer_grade'] }}）· {{ q['msg_count'] }} 条消息 · {{ q['last_at'] | timeago }}</span>
+            </div>
+            {% if q['last_msg'] %}<p class="row-note">{{ q['buyer_name'] }}：{{ q['last_msg'] }}</p>{% endif %}
+          </div>
+          <div class="row-actions">
+            {% if q['status'] == 'pending' %}
+              <form method="post" action="{{ url_for('inquiry_action', inquiry_id=q['id'], action='accept') }}">
+                <input type="hidden" name="back" value="{{ url_for('my', tab='inbox') }}">
+                <button class="btn btn-primary btn-sm" type="submit">同意</button>
+              </form>
+              <form method="post" action="{{ url_for('inquiry_action', inquiry_id=q['id'], action='decline') }}">
+                <input type="hidden" name="back" value="{{ url_for('my', tab='inbox') }}">
+                <button class="btn btn-ghost btn-sm" type="submit">婉拒</button>
+              </form>
+            {% else %}
+              <a class="btn btn-primary btn-sm" href="{{ url_for('chat', inquiry_id=q['id']) }}">继续沟通</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">📬</div>
+      <h3>还没有人联系你</h3>
+      <p class="muted">信息贴出去后，有人感兴趣就会出现在这里，你可以决定是否同意。</p>
+      <a class="btn btn-primary" href="{{ url_for('publish') }}">去贴一条信息</a>
+    </div>
+  {% endif %}
+
+{% elif tab == 'inquiries' %}
+  {% if inquiries %}
+    <div class="rows">
+      {% for q in inquiries %}
+        <div class="row-card">
+          <a class="thumb" href="{{ url_for('item_detail', item_id=q['item_id']) }}">
+            {% if q['image'] %}
+              <img src="{{ q['image'] if q['image'].startswith('http') else url_for('static', filename=q['image']) }}" alt="">
+            {% else %}
+              <div class="ph ph-{{ q['item_id'] % 6 }}"><span>📦</span></div>
+            {% endif %}
+          </a>
+          <div class="row-main">
+            <a class="row-title" href="{{ url_for('chat', inquiry_id=q['id']) }}">{{ q['title'] }}</a>
+            <div class="row-meta">
+              <span class="status status-{{ q['status'] }}">{{ INQUIRY_TEXT[q['status']] }}</span>
+              <span class="muted">发布者 {{ q['seller_name'] }} · {{ q['msg_count'] }} 条消息 · {{ q['last_at'] | timeago }}</span>
+              {% if q['item_status'] != 'open' %}
+                <span class="status status-{{ q['item_status'] }}">{{ STATUS_TEXT[q['item_status']] }}</span>
+              {% endif %}
+            </div>
+            {% if q['last_msg'] %}<p class="row-note">最新消息：{{ q['last_msg'] }}</p>{% endif %}
+          </div>
+          <div class="row-actions">
+            <a class="btn {{ 'btn-primary' if q['status'] == 'pending' else 'btn-ghost' }} btn-sm"
+               href="{{ url_for('chat', inquiry_id=q['id']) }}">
+              {{ '查看进度' if q['status'] == 'pending' else '继续沟通' }}
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">💬</div>
+      <h3>还没有联系过任何人</h3>
+      <p class="muted">在墙上看到想要的东西，点「发起联系」就能向发布者发出申请。</p>
+      <a class="btn btn-primary" href="{{ url_for('browse') }}">去逛信息墙</a>
+    </div>
+  {% endif %}
+
+{% else %}
+  {% if favs %}
+    <div class="grid">
+      {% for f in favs %}{{ item_card(f) }}{% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">🤍</div>
+      <h3>收藏夹空空的</h3>
+      <p class="muted">看到心动的信息，点一下收藏就不会弄丢啦。</p>
+      <a class="btn btn-primary" href="{{ url_for('browse') }}">去发现好物</a>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

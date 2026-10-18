@@ -1,0 +1,275 @@
+/* ============================================================
+   校园闲置信息墙 · 信息墙 / 联系 / 沟通 相关组件
+   ============================================================ */
+
+/* 面议价格 */
+.price-nego {
+  font-size: 19px;
+  letter-spacing: .5px;
+  color: var(--primary);
+}
+.price.big.price-nego { font-size: 34px; }
+.price-note { font-size: 11.5px; color: var(--ink-3); }
+.price-note.big { font-size: 12.5px; }
+
+/* 三步说明 */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 15px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+}
+.step-no {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 8px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+.step b { display: block; font-size: 13.5px; }
+.step small { display: block; font-size: 11.5px; color: var(--ink-3); line-height: 1.55; margin-top: 2px; }
+.step-note { background: #fdf7f1; border-style: dashed; border-color: #ecdbcb; }
+.step-note .step-no { background: #fbe6d8; color: #b4491c; }
+
+/* 状态标签（信息墙语义） */
+.chip-open { background: var(--green-soft); color: var(--green); }
+.chip-closed, .chip-off { background: #eef0f4; color: #5b6270; }
+.badge-closed, .badge-off { background: rgba(78, 84, 98, .86); }
+.status-open { background: var(--green-soft); color: var(--green); }
+.status-contacting { background: var(--amber-soft); color: var(--amber); }
+.status-agreed { background: #e8f2ff; color: #2a5db0; }
+.status-closed { background: #eef0f4; color: #5b6270; }
+
+/* 免责提示条 */
+.notice-bar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fdf7ef;
+  border: 1px solid #f3e3cd;
+  font-size: 12px;
+  color: #7d5a33;
+  line-height: 1.6;
+}
+.notice-bar > span { flex-shrink: 0; }
+.notice-bar b { color: #a1501c; }
+.notice-bar.side { margin-top: 16px; }
+
+/* 个人中心：3 列统计 */
+.summary-row.three { grid-template-columns: repeat(3, 1fr); }
+
+/* ---------------- 沟通页 ---------------- */
+.chat-grid {
+  display: grid;
+  grid-template-columns: 1.35fr .65fr;
+  gap: 24px;
+  align-items: start;
+}
+.chat-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line-soft);
+  background: linear-gradient(120deg, #fffdfa, #fff6ef);
+  flex-wrap: wrap;
+}
+.chat-who { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 2px; }
+.chat-who strong { font-size: 14px; display: flex; align-items: center; gap: 7px; }
+.chat-who small { font-size: 11.5px; }
+.chat-head-actions { display: flex; gap: 8px; }
+.chat-head-actions form { margin: 0; }
+
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 20px;
+  min-height: 300px;
+  max-height: 52vh;
+  overflow-y: auto;
+  background: radial-gradient(600px 200px at 20% 0%, #fffaf5 0%, rgba(255, 250, 245, 0) 70%), #fff;
+}
+.msg { display: flex; align-items: flex-end; gap: 9px; }
+.msg-mine { flex-direction: row-reverse; }
+.bubble-wrap { display: flex; flex-direction: column; max-width: 74%; }
+.msg-mine .bubble-wrap { align-items: flex-end; }
+.bubble {
+  padding: 11px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg-other .bubble {
+  background: #f6f3ed;
+  border: 1px solid #eee7db;
+  border-bottom-left-radius: 6px;
+  color: var(--ink);
+}
+.msg-mine .bubble {
+  background: linear-gradient(140deg, #ff7c48, #ee511d);
+  color: #fff;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 10px 18px -14px rgba(238, 81, 29, .95);
+}
+.msg-time { font-size: 10.5px; color: var(--ink-3); margin-top: 5px; }
+.chat-empty { text-align: center; padding: 60px 0; font-size: 13px; }
+
+.chat-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line-soft);
+  background: #fffdfa;
+}
+.chat-composer .textarea { flex: 1; min-height: 58px; background: #fff; }
+.chat-closed {
+  padding: 18px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  background: #faf8f4;
+  border-top: 1px solid var(--line-soft);
+}
+
+.chat-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+.chat-banner b { display: block; font-size: 13.5px; }
+.chat-banner small { font-size: 11.5px; color: inherit; opacity: .8; }
+.banner-agreed { background: #eaf2ff; border: 1px solid #d3e2fb; color: #24509b; }
+.banner-closed { background: #f4f2ef; border: 1px solid #e8e3da; color: #5b6270; }
+
+.chat-side { display: flex; flex-direction: column; gap: 0; }
+.mini-item {
+  display: flex;
+  gap: 13px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  transition: .2s;
+}
+.mini-item:hover { border-color: #f2d2be; }
+.mini-thumb {
+  width: 78px; height: 78px; border-radius: 11px; overflow: hidden;
+  background: var(--gray-soft); flex-shrink: 0;
+}
+.mini-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.mini-thumb .ph { font-size: 26px; }
+.mini-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.mini-main b { font-size: 13.5px; line-height: 1.45; }
+.mini-main small { font-size: 11px; }
+.mini-main .price { font-size: 17px; margin-top: 2px; }
+
+.row-main .row-note { align-self: flex-start; max-width: 100%; }
+.chat-body { min-height: 380px; }
+
+.side-panel { margin-top: 16px; padding: 18px 20px; }
+.mini-list { display: flex; flex-direction: column; gap: 8px; }
+.mini-row {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: 10px;
+  background: #fffdfa; border: 1px solid var(--line-soft);
+  font-size: 12.5px; transition: .18s;
+}
+.mini-row:hover { border-color: #f2d2be; background: #fff8f2; }
+.mini-row-main { flex: 1; font-weight: 600; }
+
+.avatar.sm { width: 26px; height: 26px; font-size: 11.5px; }
+
+@media (max-width: 1040px) {
+  .chat-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chat-body { max-height: none; }
+}
+
+@media (max-width: 720px) {
+  .steps { grid-template-columns: 1fr; }
+  .summary-row.three { grid-template-columns: 1fr; }
+  .chat-head { padding: 13px 14px; }
+  .chat-body { padding: 16px 14px; gap: 11px; }
+  .bubble-wrap { max-width: 82%; }
+  .chat-composer { padding: 11px 12px; flex-direction: column; align-items: stretch; }
+  .chat-composer .btn { width: 100%; }
+}
+
+/* ---------------- 同意制联系 / 联系方式交换 ---------------- */
+.status-chatting { background: var(--amber-soft); color: var(--amber); }
+.status-pending { background: #fdeee2; color: #b1511f; }
+.status-declined { background: #f2f0f4; color: #6b6478; }
+
+.banner-pending { background: #fdf4e9; border: 1px solid #f4e0c6; color: #8a5416; }
+
+.chat-tip {
+  align-self: center;
+  max-width: 84%;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  background: #faf7f2;
+  border: 1px dashed #e9dfd2;
+  border-radius: 10px;
+  padding: 7px 14px;
+  margin-top: 4px;
+}
+
+.contact-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12.5px;
+  padding: 3px 0;
+}
+.contact-line span { color: var(--ink-3); flex-shrink: 0; }
+.contact-line b { font-weight: 600; text-align: right; word-break: break-all; }
+.contact-line b.ok { color: var(--green); }
+.contact-line.other { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line-soft); }
+
+.contact-edit { display: flex; gap: 7px; margin: 8px 0 10px; }
+.contact-edit .input { padding: 8px 11px; font-size: 12.5px; }
+.contact-edit .btn { flex-shrink: 0; }
+
+.contact-share { margin-top: 6px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.steps-note { margin-top: 14px; }
+
+.grade-picker.cols3 { grid-template-columns: repeat(3, 1fr); }
+.grade-box b { font-size: 13px; }
+

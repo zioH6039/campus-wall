@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% from "_card.html" import item_card with context %}
+{% block title %}{{ item['title'] }} · 校园闲置信息墙{% endblock %}
+
+{% block content %}
+<nav class="crumbs">
+  <a href="{{ url_for('index') }}">首页</a><span>/</span>
+  <a href="{{ url_for('browse', cat=item['category']) }}">{{ CAT_MAP[item['category']]['name'] }}</a><span>/</span>
+  <em>{{ item['title'] }}</em>
+</nav>
+
+<div class="detail-grid">
+  <div class="detail-media-wrap">
+    <div class="detail-media">
+      {% if item['image'] %}
+        <img src="{{ item['image'] if item['image'].startswith('http') else url_for('static', filename=item['image']) }}"
+             alt="{{ item['title'] }}">
+      {% else %}
+        <div class="ph ph-{{ item['id'] % 6 }} big"><span>{{ CAT_MAP[item['category']]['icon'] }}</span></div>
+      {% endif %}
+      {% if item['status'] != 'open' %}
+        <div class="sold-veil"><span>{{ STATUS_TEXT[item['status']] }}</span></div>
+      {% endif %}
+    </div>
+    <div class="media-note">
+      <span>📸 图片由发布者提供，交接时请当面验货</span>
+      <span>{{ item['views'] }} 次浏览</span>
+    </div>
+  </div>
+
+  <aside class="detail-info">
+    <div class="chips">
+      <span class="chip">{{ CAT_MAP[item['category']]['name'] }}</span>
+      <span class="chip">{{ item['condition'] }}</span>
+      <span class="chip chip-{{ item['status'] }}">{{ STATUS_TEXT[item['status']] }}</span>
+    </div>
+    <h1 class="detail-title">{{ item['title'] }}</h1>
+    <div class="detail-price">
+      {% if item['price'] is not none %}
+        <span class="price big"><i>¥</i>{{ item['price'] | money }}</span>
+        <span class="price-note big">发布者心理价位，可商量</span>
+      {% else %}
+        <span class="price big price-nego">面议</span>
+        <span class="price-note big">具体价格和发布者聊</span>
+      {% endif %}
+      {% if item['original_price'] %}
+        <span class="origin big">原价 ¥{{ item['original_price'] | money }}</span>
+      {% endif %}
+    </div>
+
+    <div class="meta-list">
+      <div><span>大概位置</span><b>{{ item['location'] or '校内，具体约' }}</b></div>
+      <div><span>交接方式</span><b>双方商量后自行约定</b></div>
+      <div><span>发布时间</span><b>{{ item['created_at'] | timeago }}</b></div>
+      <div><span>发布者</span><b>{{ item['seller_name'] }} · {{ item['seller_grade'] }}</b></div>
+    </div>
+
+    <div class="seller-card">
+      <div class="avatar lg">{{ item['seller_name'][0] }}</div>
+      <div class="seller-main">
+        <strong>{{ item['seller_name'] }}</strong>
+        <small>{{ item['seller_grade'] }}{% if item['seller_campus'] %} · {{ item['seller_campus'] }}{% endif %}</small>
+      </div>
+      {% if is_owner %}
+        <div class="contact">
+          <span>我的联系方式</span>
+          <b>{{ item['seller_contact'] or '未填写（可只用站内沟通）' }}</b>
+        </div>
+      {% else %}
+        <div class="contact locked">
+          <span>联系方式</span>
+          <b>双方同意后可选发送 🔐</b>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if not current_user %}
+      <div class="action-box">
+        <p class="muted">登录后可以向发布者发起联系；对方同意后，你们就能在站内沟通。</p>
+        <a class="btn btn-primary btn-block" href="{{ url_for('login', next=request.path) }}">登录后联系 TA</a>
+        <a class="btn btn-text btn-block" href="{{ url_for('register') }}">还没有账号？立即注册</a>
+      </div>
+    {% elif is_owner %}
+      <div class="action-box">
+        <p class="muted">
+          这是你贴的信息。
+          {% if item_inquiries %}共有 {{ item_inquiries | length }} 位同学联系过你{% else %}还没有同学联系你{% endif %}。
+        </p>
+        <div class="btn-row">
+          {% if item['status'] == 'open' %}
+            <a class="btn btn-primary" href="{{ url_for('my', tab='inbox') }}">查看联系</a>
+            <form method="post" action="{{ url_for('change_item_status', item_id=item['id']) }}">
+              <input type="hidden" name="action" value="off">
+              <input type="hidden" name="back" value="{{ request.path }}">
+              <button class="btn btn-ghost" type="submit">下架</button>
+            </form>
+            <form method="post" action="{{ url_for('change_item_status', item_id=item['id']) }}">
+              <input type="hidden" name="action" value="closed">
+              <input type="hidden" name="back" value="{{ request.path }}">
+              <button class="btn btn-ghost" type="submit">标记已出</button>
+            </form>
+          {% else %}
+            <form method="post" action="{{ url_for('change_item_status', item_id=item['id']) }}">
+              <input type="hidden" name="action" value="on">
+              <input type="hidden" name="back" value="{{ request.path }}">
+              <button class="btn btn-primary" type="submit">重新上墙</button>
+            </form>
+            <a class="btn btn-ghost" href="{{ url_for('my', tab='inbox') }}">查看联系</a>
+          {% endif %}
+        </div>
+      </div>
+    {% elif inquiry %}
+      <div class="action-box">
+        <p class="muted">
+          你已发起过联系，当前状态：<b>{{ INQUIRY_TEXT[inquiry['status']] }}</b>
+          {% if inquiry['status'] == 'pending' %} · 等对方同意后即可开始聊天{% endif %}
+          {% if inquiry['status'] == 'agreed' %} · 记得按时当面交接{% endif %}
+        </p>
+        <a class="btn btn-primary btn-block" href="{{ url_for('chat', inquiry_id=inquiry['id']) }}">
+          {{ '查看联系进度' if inquiry['status'] == 'pending' else '进入沟通' }}
+        </a>
+      </div>
+    {% elif item['status'] != 'open' %}
+      <div class="action-box">
+        <p class="muted">这条信息当前状态为「{{ STATUS_TEXT[item['status']] }}」，暂时不能发起联系。</p>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('browse') }}">看看其他信息</a>
+      </div>
+    {% else %}
+      <div class="action-box">
+        <form method="post" action="{{ url_for('contact', item_id=item['id']) }}">
+          <label class="mini-label" for="message">想说的话（选填）</label>
+          <textarea class="textarea" id="message" name="message" rows="2"
+                    placeholder="例如：同学你好，这件还在吗？我想了解一下具体情况～"></textarea>
+          <button class="btn btn-primary btn-block" type="submit">发起联系</button>
+        </form>
+        <p class="muted small">发送后需要对方同意，才会开启沟通。联系方式双方自愿交换。</p>
+      </div>
+    {% endif %}
+
+    <div class="notice-bar">
+      <span>⚠️</span>
+      <p>平台只负责牵线，<b>不参与交易、不收款、不担保</b>。请在校内当面交接，先验货再付款。</p>
+    </div>
+
+    <div class="sub-actions">
+      {% if current_user %}
+        <form method="post" action="{{ url_for('favorite', item_id=item['id']) }}">
+          <input type="hidden" name="back" value="{{ request.path }}">
+          <button class="link-btn" type="submit">{{ '❤️ 已收藏' if favorited else '🤍 收藏' }}</button>
+        </form>
+      {% else %}
+        <a class="link-btn" href="{{ url_for('login', next=request.path) }}">🤍 登录后收藏</a>
+      {% endif %}
+      <a class="link-btn" href="{{ url_for('browse') }}">继续逛信息墙 →</a>
+    </div>
+  </aside>
+</div>
+
+<section class="panel">
+  <h3 class="panel-title">详细信息</h3>
+  <p class="desc-text">{{ item['description'] or '发布者还没有填写详细描述。' }}</p>
+</section>
+
+{% if is_owner and item_inquiries %}
+<section class="panel">
+  <h3 class="panel-title">联系过这条信息的人</h3>
+  <div class="order-list">
+    {% for q in item_inquiries %}
+      <div class="order-row">
+        <div class="avatar">{{ q['nickname'][0] }}</div>
+        <div class="order-main">
+          <strong>{{ q['nickname'] }} <span class="tag-soft">{{ q['grade'] }}</span></strong>
+          <small class="muted">{{ q['msg_count'] }} 条消息 · {{ q['updated_at'] | timeago }}</small>
+        </div>
+        <span class="status status-{{ q['status'] }}">{{ INQUIRY_TEXT[q['status']] }}</span>
+        <div class="order-actions">
+          {% if q['status'] == 'pending' %}
+            <form method="post" action="{{ url_for('inquiry_action', inquiry_id=q['id'], action='accept') }}">
+              <input type="hidden" name="back" value="{{ request.path }}">
+              <button class="btn btn-primary btn-sm" type="submit">同意</button>
+            </form>
+            <form method="post" action="{{ url_for('inquiry_action', inquiry_id=q['id'], action='decline') }}">
+              <input type="hidden" name="back" value="{{ request.path }}">
+              <button class="btn btn-ghost btn-sm" type="submit">婉拒</button>
+            </form>
+          {% else %}
+            <a class="btn btn-ghost btn-sm" href="{{ url_for('chat', inquiry_id=q['id']) }}">进入沟通</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if related %}
+<div class="section-head">
+  <div>
+    <h2>同类信息</h2>
+    <p class="muted">来自 {{ CAT_MAP[item['category']]['name'] }} 分类</p>
+  </div>
+  <a class="link-more" href="{{ url_for('browse', cat=item['category']) }}">查看全部 →</a>
+</div>
+<div class="grid grid-3">
+  {% for r in related %}{{ item_card(r) }}{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

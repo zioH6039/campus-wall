@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} · 校园集市{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-code">{{ code }}</div>
+  <h1>{{ msg }}</h1>
+  <p class="muted">如果这不是你预期的结果，回到首页继续逛逛吧。</p>
+  <div class="btn-row center">
+    <a class="btn btn-primary" href="{{ url_for('index') }}">回到首页</a>
+    <a class="btn btn-ghost" href="{{ url_for('browse') }}">逛集市</a>
+  </div>
+</div>
+{% endblock %}
